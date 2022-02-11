@@ -16,7 +16,7 @@ func generate(cnt int) string {
 }
 
 func unique(s string, Db *sql.DB) bool {
-	getQuery := fmt.Sprintf("SELECT id FROM data WHERE url='%s';", s)
+	getQuery := fmt.Sprintf("SELECT * FROM link WHERE long='%s';", s)
 	rows, _ := Db.Query(getQuery)
 
 	if rows.Next() {
