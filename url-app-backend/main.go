@@ -25,8 +25,10 @@ const (
 )
 
 func handleRequests() {
+	fileServer := http.FileServer(http.Dir("./static"))
+	http.Handle("/", fileServer)
 	http.HandleFunc("/post", postFunction)
-	http.HandleFunc("/", getFunction)
+	// http.HandleFunc("/", getFunction)
 	http.HandleFunc("/welcome", welcomeFunction)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -100,6 +102,7 @@ func postFunction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body, err := ioutil.ReadAll(r.Body)
+	fmt.Println(string(body))
 
 	if err != nil {
 		http.Error(w, "Post Read Error", http.StatusBadRequest)
@@ -124,26 +127,18 @@ func postFunction(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("1")
-
 	if !rows.Next() {
-		fmt.Println("2")
 		short := gen.GetCode(Db)
 
-		fmt.Println("3")
 		insertStmt := fmt.Sprintf("INSERT INTO link (long, short) VALUES ('%s', '%s');", url, short)
 		_, e := Db.Exec(insertStmt)
-
-		fmt.Println("4")
 
 		if e != nil {
 			w.Write([]byte(e.Error()))
 		}
 
-		fmt.Println("5")
-
 		w.Write([]byte(fmt.Sprintf(`{"url": "localhost/%s"}`, short)))
 	} else {
-		fmt.Println("Exception")
+
 	}
 }

@@ -1,0 +1,23 @@
+.container {
+    display: flex;
+    /* white-space: nowrap; */
+}
+
+.textInput {
+    height: 22px;
+    width: 320;
+    margin-top: 20px;
+    margin-left: 4px;
+    /* display: inline-block; */
+}
+
+.label {
+    font-size: 20px;
+    /* display: inline-block; */
+}
+
+.cbutton {
+    margin-top: 20px;
+    margin-left: 4px;
+    height: 22px;
+}
