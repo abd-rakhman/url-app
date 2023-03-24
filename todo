@@ -1,7 +1,8 @@
 [x] - Install environment variables
-[ ] - Host it on the external server
+[x] - Host it on the external server
+[x] - Add feature with user chosen hashId
 [ ] - 100% valid hashId generation
 [ ] - Write tests for db queries
-[ ] - Add feature with user chosen hashId
 [ ] - Install expires_at
 [ ] - Install API Rate Limiter
+[?] - buy domain?

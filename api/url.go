@@ -13,21 +13,23 @@ func (server *Server) welcome(c *gin.Context) {
 }
 
 type createURLRequest struct {
-	URL string `json:"url" binding:"required"`
+	Url    string `json:"url" binding:"required"`
+	HashID string `json:"hash_id"`
 }
 
 func (server *Server) createURL(c *gin.Context) {
-	fmt.Println("createURL")
 	var req createURLRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
 		return
 	}
-	randomHashID := utils.RandomString(6)
-	fmt.Println(randomHashID)
+	fmt.Printf("req: %+v", req)
+	if req.HashID == "" {
+		req.HashID = utils.RandomString(6)
+	}
 	url, err := server.Queries.CreateUrl(c, db.CreateUrlParams{
-		HashID: randomHashID,
-		Url:    req.URL,
+		Url:    req.Url,
+		HashID: req.HashID,
 	})
 	if err != nil {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
