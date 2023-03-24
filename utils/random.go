@@ -1,8 +1,17 @@
 package utils
 
+import (
+	"math/rand"
+	"time"
+)
+
 const (
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func RandomString(length int) string {
 	b := make([]byte, length)

@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+	_ "github.com/lib/pq"
+
 )
 
 const createUrl = `-- name: CreateUrl :one
@@ -37,6 +39,19 @@ SELECT hash_id, url FROM urls WHERE hash_id=$1
 
 func (q *Queries) GetUrlByHashId(ctx context.Context, hashID string) (Url, error) {
 	row := q.db.QueryRowContext(ctx, getUrlByHashId, hashID)
+	var i Url
+	err := row.Scan(&i.HashID, &i.Url)
+	return i, err
+}
+
+const getUrlByHashIdForUpdate = `-- name: GetUrlByHashIdForUpdate :one
+SELECT hash_id, url FROM urls
+WHERE hash_id=$1
+FOR UPDATE
+`
+
+func (q *Queries) GetUrlByHashIdForUpdate(ctx context.Context, hashID string) (Url, error) {
+	row := q.db.QueryRowContext(ctx, getUrlByHashIdForUpdate, hashID)
 	var i Url
 	err := row.Scan(&i.HashID, &i.Url)
 	return i, err

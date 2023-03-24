@@ -9,3 +9,8 @@ INSERT INTO urls (
 
 -- name: GetUrlByHashId :one
 SELECT * FROM urls WHERE hash_id=$1;
+
+-- name: GetUrlByHashIdForUpdate :one
+SELECT * FROM urls
+WHERE hash_id=$1
+FOR UPDATE;

@@ -1,5 +1,6 @@
 CREATE TABLE "urls" (
-  "hash_id" varchar(16) NOT NULL,
+  -- "id" bigserial PRIMARY KEY,
+  "hash_id" varchar(16) NOT NULL UNIQUE,
   "url" varchar NOT NULL
 );
 
