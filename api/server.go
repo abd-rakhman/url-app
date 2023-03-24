@@ -19,6 +19,7 @@ func NewServer(queries *db.Queries) *Server {
 	}
 	router := gin.Default()
 
+	router.GET("/welcome", server.welcome)
 	router.POST("/create", server.createURL)
 	router.GET("/:hashID", server.redirectURL)
 

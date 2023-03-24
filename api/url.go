@@ -8,11 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func (server *Server) welcome(c *gin.Context) {
+	c.JSON(200, gin.H{"message": "Welcome to URL Shortener"})
+}
+
 type createURLRequest struct {
 	URL string `json:"url" binding:"required"`
 }
 
 func (server *Server) createURL(c *gin.Context) {
+	fmt.Println("createURL")
 	var req createURLRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
@@ -28,7 +33,7 @@ func (server *Server) createURL(c *gin.Context) {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
 		return
 	}
-	c.JSON(200, gin.H{"hash_id": url.HashID, "url": url.Url})
+	c.JSON(201, gin.H{"hash_id": url.HashID, "url": url.Url})
 }
 
 type getURLRequest struct {

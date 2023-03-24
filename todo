@@ -1,4 +1,4 @@
-[ ] - Install environment variables
+[x] - Install environment variables
 [ ] - Host it on the external server
 [ ] - 100% valid hashId generation
 [ ] - Write tests for db queries
