@@ -4,9 +4,12 @@
 
 package db
 
-import ()
+import (
+	"time"
+)
 
 type Url struct {
-	HashID string `json:"hash_id"`
-	Url    string `json:"url"`
+	HashID    string    `json:"hash_id"`
+	Url       string    `json:"url"`
+	ExpiresAt time.Time `json:"expires_at"`
 }

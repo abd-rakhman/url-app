@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/abd-rakhman/url-app/utils"
 )
@@ -37,8 +38,9 @@ func (store *Store) execTx(ctx context.Context, txFunc func(*Queries) error) err
 }
 
 type CreateNewURLRequest struct {
-	URL    string
-	HashID string
+	URL       string
+	HashID    string
+	ExpiresAt int64
 }
 
 func (store *Store) CreateNewURLTx(ctx context.Context, args CreateNewURLRequest) (Url, error) {
@@ -48,10 +50,7 @@ func (store *Store) CreateNewURLTx(ctx context.Context, args CreateNewURLRequest
 			_, err := q.GetUrlByHashIdForUpdate(ctx, args.HashID)
 			if err != nil {
 				if err == sql.ErrNoRows {
-					result, err = q.CreateUrl(ctx, CreateUrlParams{
-						HashID: args.HashID,
-						Url:    args.URL,
-					})
+					result, err = q.createURL(ctx, args)
 					if err != nil {
 						return err
 					} else {
@@ -70,9 +69,10 @@ func (store *Store) CreateNewURLTx(ctx context.Context, args CreateNewURLRequest
 					_, err := q.GetUrlByHashIdForUpdate(ctx, hashId)
 					if err != nil {
 						if err == sql.ErrNoRows {
-							result, err = q.CreateUrl(ctx, CreateUrlParams{
-								HashID: hashId,
-								Url:    args.URL,
+							result, err = q.createURL(ctx, CreateNewURLRequest{
+								URL:       args.URL,
+								HashID:    hashId,
+								ExpiresAt: args.ExpiresAt,
 							})
 							if err != nil {
 								return err
@@ -89,4 +89,21 @@ func (store *Store) CreateNewURLTx(ctx context.Context, args CreateNewURLRequest
 		return fmt.Errorf("internal server error: unable to create new url")
 	})
 	return result, err
+}
+
+func (q *Queries) createURL(ctx context.Context, args CreateNewURLRequest) (Url, error) {
+	if args.ExpiresAt == 0 {
+		args := CreateUrlParams{
+			HashID: args.HashID,
+			Url:    args.URL,
+		}
+		return q.CreateUrl(ctx, args)
+	} else {
+		args := CreateUrlWithExpiresAtParams{
+			HashID:    args.HashID,
+			Url:       args.URL,
+			ExpiresAt: time.Unix(args.ExpiresAt, 0).UTC(),
+		}
+		return q.CreateUrlWithExpiresAt(ctx, args)
+	}
 }

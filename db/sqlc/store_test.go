@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/abd-rakhman/url-app/utils"
 	"github.com/stretchr/testify/require"
@@ -36,13 +38,13 @@ func TestCreateNewURLTx(t *testing.T) {
 	errChan := make(chan error, n)
 
 	for i := 0; i < n; i++ {
-		go func() {
+		go func(i int) {
 			url, err := store.CreateNewURLTx(context.Background(), CreateNewURLRequest{
-				URL: "test_url_link%d",
+				URL: fmt.Sprintf("test_url_link%d", i),
 			})
 			urlChan <- url
 			errChan <- err
-		}()
+		}(i)
 	}
 
 	for i := 0; i < n; i++ {
@@ -95,4 +97,48 @@ func TestCreateNewURLTx(t *testing.T) {
 	})
 	require.Error(t, err)
 
+	// check for expiresAt with existingHashID
+	currentTime := time.Now().Unix()
+	fmt.Println(currentTime)
+	randomUniqueHashID = utils.RandomString(16)
+	result, err := store.CreateNewURLTx(context.Background(), CreateNewURLRequest{
+		HashID:    randomUniqueHashID,
+		URL:       "test_url_link",
+		ExpiresAt: currentTime + 3600,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, result)
+	require.Equal(t, randomUniqueHashID, result.HashID)
+	require.Equal(t, "test_url_link", result.Url)
+	require.Equal(t, currentTime+3600, result.ExpiresAt.Unix())
+
+	// check for expiresAt with randomHashID
+	result, err = store.CreateNewURLTx(context.Background(), CreateNewURLRequest{
+		URL:       "test_url_link",
+		ExpiresAt: currentTime + 3600,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, result)
+	require.Equal(t, currentTime+3600, result.ExpiresAt.Unix())
+
+	// now, I should be able to extract it
+	getUrl, err := store.GetUrlByHashId(context.Background(), result.HashID)
+	require.NoError(t, err)
+	require.NotEmpty(t, getUrl)
+	require.Equal(t, result.Url, getUrl.Url)
+	require.Equal(t, result.HashID, getUrl.HashID)
+	require.Equal(t, result.ExpiresAt.Unix(), getUrl.ExpiresAt.Unix())
+
+	// check for expired expiresAt
+	result, err = store.CreateNewURLTx(context.Background(), CreateNewURLRequest{
+		URL:       "test_url_link",
+		ExpiresAt: currentTime + 10,
+	})
+	require.NoError(t, err)
+	time.Sleep(10 * time.Second)
+
+	// now, I should not be able to extract it
+	// getUrl, err = store.GetUrlByHashId(context.Background(), result.HashID)
+	// require.Error(t, err)
+	// require.Empty(t, getUrl)
 }

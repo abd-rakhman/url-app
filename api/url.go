@@ -10,8 +10,9 @@ func (server *Server) welcome(c *gin.Context) {
 }
 
 type createURLRequest struct {
-	Url    string `json:"url" binding:"required"`
-	HashID string `json:"hash_id"`
+	Url       string `json:"url" binding:"required"`
+	HashID    string `json:"hash_id"`
+	expiresAt int64  `json:"expires_at"`
 }
 
 func (server *Server) createURL(c *gin.Context) {
@@ -21,8 +22,9 @@ func (server *Server) createURL(c *gin.Context) {
 		return
 	}
 	url, err := server.store.CreateNewURLTx(c, db.CreateNewURLRequest{
-		HashID: req.HashID,
-		URL:    req.Url,
+		HashID:    req.HashID,
+		URL:       req.Url,
+		ExpiresAt: req.expiresAt,
 	})
 	if err != nil {
 		c.JSON(400, gin.H{"error": errorResponse(err)})

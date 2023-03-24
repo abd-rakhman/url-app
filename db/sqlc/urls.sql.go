@@ -7,8 +7,7 @@ package db
 
 import (
 	"context"
-	_ "github.com/lib/pq"
-
+	"time"
 )
 
 const createUrl = `-- name: CreateUrl :one
@@ -18,7 +17,7 @@ INSERT INTO urls (
 ) VALUES (
   $1,
   $2
-) RETURNING hash_id, url
+) RETURNING hash_id, url, expires_at
 `
 
 type CreateUrlParams struct {
@@ -29,23 +28,48 @@ type CreateUrlParams struct {
 func (q *Queries) CreateUrl(ctx context.Context, arg CreateUrlParams) (Url, error) {
 	row := q.db.QueryRowContext(ctx, createUrl, arg.HashID, arg.Url)
 	var i Url
-	err := row.Scan(&i.HashID, &i.Url)
+	err := row.Scan(&i.HashID, &i.Url, &i.ExpiresAt)
+	return i, err
+}
+
+const createUrlWithExpiresAt = `-- name: CreateUrlWithExpiresAt :one
+INSERT INTO urls (
+  hash_id,
+  url,
+  expires_at
+) VALUES (
+  $1,
+  $2,
+  $3
+) RETURNING hash_id, url, expires_at
+`
+
+type CreateUrlWithExpiresAtParams struct {
+	HashID    string    `json:"hash_id"`
+	Url       string    `json:"url"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+func (q *Queries) CreateUrlWithExpiresAt(ctx context.Context, arg CreateUrlWithExpiresAtParams) (Url, error) {
+	row := q.db.QueryRowContext(ctx, createUrlWithExpiresAt, arg.HashID, arg.Url, arg.ExpiresAt)
+	var i Url
+	err := row.Scan(&i.HashID, &i.Url, &i.ExpiresAt)
 	return i, err
 }
 
 const getUrlByHashId = `-- name: GetUrlByHashId :one
-SELECT hash_id, url FROM urls WHERE hash_id=$1
+SELECT hash_id, url, expires_at FROM urls WHERE hash_id=$1
 `
 
 func (q *Queries) GetUrlByHashId(ctx context.Context, hashID string) (Url, error) {
 	row := q.db.QueryRowContext(ctx, getUrlByHashId, hashID)
 	var i Url
-	err := row.Scan(&i.HashID, &i.Url)
+	err := row.Scan(&i.HashID, &i.Url, &i.ExpiresAt)
 	return i, err
 }
 
 const getUrlByHashIdForUpdate = `-- name: GetUrlByHashIdForUpdate :one
-SELECT hash_id, url FROM urls
+SELECT hash_id, url, expires_at FROM urls
 WHERE hash_id=$1
 FOR UPDATE
 `
@@ -53,6 +77,6 @@ FOR UPDATE
 func (q *Queries) GetUrlByHashIdForUpdate(ctx context.Context, hashID string) (Url, error) {
 	row := q.db.QueryRowContext(ctx, getUrlByHashIdForUpdate, hashID)
 	var i Url
-	err := row.Scan(&i.HashID, &i.Url)
+	err := row.Scan(&i.HashID, &i.Url, &i.ExpiresAt)
 	return i, err
 }
