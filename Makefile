@@ -13,6 +13,13 @@ migrateup:
 migratedown:
 	migrate -path ./db/migration -database "postgresql://root:bright@localhost:5434/url_app?sslmode=disable" -verbose down
 
+migrateup1:
+	migrate -path ./db/migration -database "postgresql://root:bright@localhost:5434/url_app?sslmode=disable" -verbose up 1
+
+migratedown1:
+	migrate -path ./db/migration -database "postgresql://root:bright@localhost:5434/url_app?sslmode=disable" -verbose down 1
+
+
 sqlc:
 	sqlc generate
 
