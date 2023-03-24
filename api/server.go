@@ -9,13 +9,13 @@ import (
 )
 
 type Server struct {
-	Queries *db.Queries
-	router  *gin.Engine
+	store  *db.Store
+	router *gin.Engine
 }
 
-func NewServer(queries *db.Queries) *Server {
+func NewServer(store *db.Store) *Server {
 	server := &Server{
-		Queries: queries,
+		store: store,
 	}
 	router := gin.Default()
 

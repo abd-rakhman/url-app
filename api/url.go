@@ -1,10 +1,9 @@
 package api
 
 import (
-	"fmt"
+	"database/sql"
 
 	db "github.com/abd-rakhman/url-app/db/sqlc"
-	"github.com/abd-rakhman/url-app/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,19 +22,35 @@ func (server *Server) createURL(c *gin.Context) {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
 		return
 	}
-	fmt.Printf("req: %+v", req)
 	if req.HashID == "" {
-		req.HashID = utils.RandomString(6)
+		url, err := server.store.CreateNewURLTx(c, db.CreateNewURLRequest{
+			URL: req.Url,
+		})
+		if err != nil {
+			c.JSON(400, gin.H{"error": errorResponse(err)})
+			return
+		}
+		c.JSON(201, gin.H{"hash_id": url.HashID, "url": url.Url})
+	} else {
+		url, err := server.store.GetUrlByHashId(c, req.HashID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				url, err = server.store.CreateUrl(c, db.CreateUrlParams{
+					Url:    req.Url,
+					HashID: req.HashID,
+				})
+				if err != nil {
+					c.JSON(400, gin.H{"error": errorResponse(err)})
+					return
+				}
+				c.JSON(201, gin.H{"hash_id": url.HashID, "url": url.Url})
+				return
+			}
+			c.JSON(400, gin.H{"error": errorResponse(err)})
+			return
+		}
+		c.JSON(400, gin.H{"error": "this hashID already exists"})
 	}
-	url, err := server.Queries.CreateUrl(c, db.CreateUrlParams{
-		Url:    req.Url,
-		HashID: req.HashID,
-	})
-	if err != nil {
-		c.JSON(400, gin.H{"error": errorResponse(err)})
-		return
-	}
-	c.JSON(201, gin.H{"hash_id": url.HashID, "url": url.Url})
 }
 
 type getURLRequest struct {
@@ -48,7 +63,7 @@ func (server *Server) redirectURL(c *gin.Context) {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
 		return
 	}
-	url, err := server.Queries.GetUrlByHashId(c, req.HashID)
+	url, err := server.store.GetUrlByHashId(c, req.HashID)
 	if err != nil {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
 		return

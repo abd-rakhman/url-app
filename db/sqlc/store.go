@@ -45,23 +45,25 @@ type CreateNewURLRequest struct {
 func (store *Store) CreateNewURLTx(ctx context.Context, args CreateNewURLRequest) (Url, error) {
 	var result Url
 	err := store.execTx(ctx, func(q *Queries) error {
-		hashedIdLength := 6
-		hashID := utils.RandomString(hashedIdLength)
-
-		url, err := q.GetUrlByHashIdForUpdate(ctx, hashID)
-		if err != nil {
-			return err
-		}
-
-		if url.Url != "" {
-			return fmt.Errorf("hashed id already exists")
-		} else {
-			result, err = q.CreateUrl(ctx, CreateUrlParams{
-				HashID: hashID,
-				Url:    args.URL,
-			})
-			if err != nil {
-				return err
+		for hashedLength := 6; hashedLength < 10; hashedLength++ {
+			for repeat := 0; repeat < 4; repeat++ {
+				hashId := utils.RandomString(hashedLength)
+				_, err := q.GetUrlByHashId(ctx, hashId)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						result, err = q.CreateUrl(ctx, CreateUrlParams{
+							HashID: hashId,
+							Url:    args.URL,
+						})
+						if err != nil {
+							return err
+						} else {
+							return nil
+						}
+					} else {
+						return err
+					}
+				}
 			}
 		}
 		return nil

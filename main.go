@@ -20,9 +20,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	Queries := db.New(conn)
+	Store := db.NewStore(conn)
 
-	server := api.NewServer(Queries)
+	server := api.NewServer(Store)
 
 	err = server.Run(config.ServerAddress)
 	if err != nil {
