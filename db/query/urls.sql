@@ -19,9 +19,12 @@ INSERT INTO urls (
 ) RETURNING *;
 
 -- name: GetUrlByHashId :one
-SELECT * FROM urls WHERE hash_id=$1;
+SELECT * FROM urls WHERE hash_id=$1 and now() < expires_at;
 
 -- name: GetUrlByHashIdForUpdate :one
 SELECT * FROM urls
 WHERE hash_id=$1
 FOR UPDATE;
+
+-- name: DeleteExpiredUrls :exec
+DELETE FROM urls WHERE now() > expires_at;

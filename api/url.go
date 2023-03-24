@@ -1,7 +1,10 @@
 package api
 
 import (
+	"fmt"
+
 	db "github.com/abd-rakhman/url-app/db/sqlc"
+	"github.com/abd-rakhman/url-app/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,7 +15,7 @@ func (server *Server) welcome(c *gin.Context) {
 type createURLRequest struct {
 	Url       string `json:"url" binding:"required"`
 	HashID    string `json:"hash_id"`
-	expiresAt int64  `json:"expires_at"`
+	ExpiresAt int64  `json:"expires_at"`
 }
 
 func (server *Server) createURL(c *gin.Context) {
@@ -21,10 +24,11 @@ func (server *Server) createURL(c *gin.Context) {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
 		return
 	}
+	fmt.Println(req)
 	url, err := server.store.CreateNewURLTx(c, db.CreateNewURLRequest{
 		HashID:    req.HashID,
 		URL:       req.Url,
-		ExpiresAt: req.expiresAt,
+		ExpiresAt: req.ExpiresAt,
 	})
 	if err != nil {
 		c.JSON(400, gin.H{"error": errorResponse(err)})
@@ -49,4 +53,31 @@ func (server *Server) redirectURL(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"url": url.Url})
+}
+
+type cleanExpiredURLRequest struct {
+	Secret string `json:"secret"`
+}
+
+func (server *Server) cleanExpiredURLs(c *gin.Context) {
+	var req cleanExpiredURLRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": errorResponse(err)})
+		return
+	}
+	config, err := utils.LoadConfig("..")
+	if err != nil {
+		c.JSON(500, gin.H{"error": errorResponse(err)})
+		return
+	}
+	if req.Secret != config.CleanSecretKey {
+		c.JSON(400, gin.H{"error": "Incorrect secret key"})
+		return
+	}
+	err = server.store.DeleteExpiredUrls(c)
+	if err != nil {
+		c.JSON(400, gin.H{"error": errorResponse(err)})
+		return
+	}
+	c.JSON(200, gin.H{"message": "success"})
 }

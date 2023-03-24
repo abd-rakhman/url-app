@@ -22,6 +22,7 @@ func NewServer(store *db.Store) *Server {
 	router.GET("/welcome", server.welcome)
 	router.POST("/create", server.createURL)
 	router.GET("/:hashID", server.redirectURL)
+	router.POST("/clean-expired", server.cleanExpiredURLs)
 
 	server.router = router
 	return server

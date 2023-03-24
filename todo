@@ -4,6 +4,6 @@
 [ ] - Add json validator
 [x] - 100% valid hashId generation
 [x] - Write tests for db queries
-[ ] - Install expires_at
+[x] - Install expires_at
 [ ] - Install API Rate Limiter
 [?] - buy domain?

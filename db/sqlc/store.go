@@ -104,6 +104,7 @@ func (q *Queries) createURL(ctx context.Context, args CreateNewURLRequest) (Url,
 			Url:       args.URL,
 			ExpiresAt: time.Unix(args.ExpiresAt, 0).UTC(),
 		}
+		fmt.Printf("Create with args %v\n", args)
 		return q.CreateUrlWithExpiresAt(ctx, args)
 	}
 }

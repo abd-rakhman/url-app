@@ -57,8 +57,17 @@ func (q *Queries) CreateUrlWithExpiresAt(ctx context.Context, arg CreateUrlWithE
 	return i, err
 }
 
+const deleteExpiredUrls = `-- name: DeleteExpiredUrls :exec
+DELETE FROM urls WHERE now() > expires_at
+`
+
+func (q *Queries) DeleteExpiredUrls(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteExpiredUrls)
+	return err
+}
+
 const getUrlByHashId = `-- name: GetUrlByHashId :one
-SELECT hash_id, url, expires_at FROM urls WHERE hash_id=$1
+SELECT hash_id, url, expires_at FROM urls WHERE hash_id=$1 and now() < expires_at
 `
 
 func (q *Queries) GetUrlByHashId(ctx context.Context, hashID string) (Url, error) {
