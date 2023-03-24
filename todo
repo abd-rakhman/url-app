@@ -3,7 +3,7 @@
 [x] - Add feature with user chosen hashId
 [ ] - Add json validator
 [x] - 100% valid hashId generation
-[ ] - Write tests for db queries
+[x] - Write tests for db queries
 [ ] - Install expires_at
 [ ] - Install API Rate Limiter
 [?] - buy domain?
